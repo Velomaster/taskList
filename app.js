@@ -19,6 +19,10 @@ function loadEventListeners() {
   document.addEventListener('DOMContentLoaded', loadAllTasks);
   //Filter tasks 
   filter.addEventListener('keyup', filterTasks);
+  //Click favorite task
+  taskList.addEventListener('click', favoriteTask);
+  //Move favorite tasks
+  taskList.addEventListener('click', moveFavorites);
 };
 
 //Add task
@@ -29,7 +33,11 @@ function addTask(e) {
     //save to local storage
     const storedTasksStr = localStorage.getItem('tasks');
     const storedTasks = storedTasksStr ? JSON.parse(storedTasksStr) : [];
-    storedTasks.push(taskInput.value);
+    const task = {
+      taskName: taskInput.value,
+      isFavorite: false
+    };
+    storedTasks.push(task);
     localStorage.setItem('tasks',JSON.stringify(storedTasks));
 
     loadAllTasks();
@@ -52,12 +60,16 @@ function loadAllTasks () {
   storedTasks.forEach(function(task, index) {
     const li = document.createElement('li');
     li.className = 'collection-item';
-    li.appendChild(document.createTextNode(task));
-    const link = document.createElement('a');
-    link.className = 'delete-item secondary-content';
-    link.innerHTML = '<i class=" fa fa-trash"></i>';
+    li.appendChild(document.createTextNode(task.taskName));
+    const deleteLink = document.createElement('a');
+    deleteLink.className = 'delete-item secondary-content';
+    deleteLink.innerHTML = '<i class=" fa fa-trash"></i>';
+    const favoriteLink = document.createElement('a');
+    favoriteLink.className = 'star-item secondary-content';
+    favoriteLink.innerHTML = '<i class="far fa-star"></i>';
     li.dataset.index = index;
-    li.appendChild(link);
+    li.appendChild(deleteLink);
+    li.appendChild(favoriteLink);
     taskList.appendChild(li);
   });
 };
@@ -73,6 +85,53 @@ function removeTask(e) {
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     
     loadAllTasks();
+  };
+};
+
+//Toggle favorite tasks
+function favoriteTask (e) {
+  if(e.target.parentElement.classList.contains('star-item')) {
+    if(e.target.className === 'fa fa-star') {
+      e.target.className = 'far fa-star'
+    } else {
+      e.target.className = 'fa fa-star'
+    };
+  };
+};
+
+//Move favorite tasks
+function moveFavorites (e) {
+  if(e.target.parentElement.classList.contains('star-item')) {
+    const allTasks = e.target.parentElement.parentElement.parentElement;
+    const clickedTask = e.target.parentElement.parentElement;
+    
+    if(clickedTask.children[1].firstChild.classList.contains('fa')) {
+      allTasks.insertBefore(clickedTask, allTasks.children[0]);
+
+    } else {
+      allTasks.insertBefore(clickedTask, allTasks.children[allTasks.children.length]);
+    };
+
+    //Save updated tasks to local storage
+    const tasksToStore = Array.from(allTasks.children);
+    const updatedTasks = [];
+
+    tasksToStore.forEach(function(task) {
+      const storedName = task.textContent;
+      let storedStatus;
+
+      if (task.children[1].firstChild.className === 'fa fa-star') {
+        storedStatus = true;
+      } else {
+        storedStatus = false;
+      };
+      const tasks = {
+        taskName: storedName,
+        isFavorite: storedStatus
+      };
+      updatedTasks.push(tasks);
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    });
   };
 };
 
