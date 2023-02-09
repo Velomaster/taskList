@@ -66,7 +66,11 @@ function loadAllTasks () {
     deleteLink.innerHTML = '<i class=" fa fa-trash"></i>';
     const favoriteLink = document.createElement('a');
     favoriteLink.className = 'star-item secondary-content';
-    favoriteLink.innerHTML = '<i class="far fa-star"></i>';
+    if (task.isFavorite === false) {
+      favoriteLink.innerHTML = '<i class="far fa-star"></i>';
+    } else {
+      favoriteLink.innerHTML = '<i class="fa fa-star"></i>';
+    };
     li.dataset.index = index;
     li.appendChild(deleteLink);
     li.appendChild(favoriteLink);
