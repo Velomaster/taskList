@@ -21,8 +21,6 @@ function loadEventListeners() {
   filter.addEventListener('keyup', filterTasks);
   //Click favorite task
   taskList.addEventListener('click', favoriteTask);
-  //Move favorite tasks
-  taskList.addEventListener('click', moveFavorites);
 };
 
 //Add task
@@ -71,6 +69,7 @@ function loadAllTasks () {
     } else {
       favoriteLink.innerHTML = '<i class="fa fa-star"></i>';
     };
+
     li.dataset.index = index;
     li.appendChild(deleteLink);
     li.appendChild(favoriteLink);
@@ -101,6 +100,7 @@ function favoriteTask (e) {
       e.target.className = 'fa fa-star'
     };
   };
+  moveFavorites(e);
 };
 
 //Move favorite tasks
