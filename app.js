@@ -46,7 +46,7 @@ function addTask(e) {
 };
 
 //Load all tasks from Local Storage
-function loadAllTasks () {
+function loadAllTasks() {
   const storedTasksStr = localStorage.getItem('tasks');
   const storedTasks = storedTasksStr ? JSON.parse(storedTasksStr) : [];
   //Remove all li elements
@@ -93,51 +93,41 @@ function removeTask(e) {
 
 //Toggle favorite tasks
 function favoriteTask (e) {
-  if(e.target.parentElement.classList.contains('star-item')) {
-    if(e.target.className === 'fa fa-star') {
-      e.target.className = 'far fa-star'
-    } else {
-      e.target.className = 'fa fa-star'
-    };
-  };
-  moveFavorites(e);
+  toggleFavorite(e)
 };
 
-//Move favorite tasks
-function moveFavorites (e) {
-  if(e.target.parentElement.classList.contains('star-item')) {
-    const allTasks = e.target.parentElement.parentElement.parentElement;
-    const clickedTask = e.target.parentElement.parentElement;
-    
-    if(clickedTask.children[1].firstChild.classList.contains('fa')) {
-      allTasks.insertBefore(clickedTask, allTasks.children[0]);
-
+function toggleFavorite(e) {
+  if(!e.target.parentElement.classList.contains('star-item')) {
+    return
+  }
+    // Get tasks
+    const tasks = getTasksFromStorage();
+    // Get clicked taks id
+    const taskIndex = e.target.parentElement.parentElement.dataset.index;
+    // Update
+    const newTask = {...tasks[taskIndex], isFavorite: !tasks[taskIndex].isFavorite};
+    tasks.splice(taskIndex, 1)
+    // Filter tasks
+    if (newTask.isFavorite) {
+      tasks.unshift(newTask);
     } else {
-      allTasks.insertBefore(clickedTask, allTasks.children[allTasks.children.length]);
-    };
+      tasks.push(newTask);
+    }
+    // Save to local storage
+    saveTasksToStorage(tasks)
+    // Load tasks
+    loadAllTasks();
+}
 
-    //Save updated tasks to local storage
-    const tasksToStore = Array.from(allTasks.children);
-    const updatedTasks = [];
+function getTasksFromStorage() {
+  const storedTasksStr = localStorage.getItem('tasks');
+  const storedTasks = storedTasksStr ? JSON.parse(storedTasksStr) : [];
+  return storedTasks;
+}
 
-    tasksToStore.forEach(function(task) {
-      const storedName = task.textContent;
-      let storedStatus;
-
-      if (task.children[1].firstChild.className === 'fa fa-star') {
-        storedStatus = true;
-      } else {
-        storedStatus = false;
-      };
-      const tasks = {
-        taskName: storedName,
-        isFavorite: storedStatus
-      };
-      updatedTasks.push(tasks);
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-    });
-  };
-};
+function saveTasksToStorage(tasks) {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
 
 //Clear all tasks
 function clearTasks() {
