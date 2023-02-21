@@ -1,6 +1,7 @@
 //Define UI vars
 const form = document.querySelector('#task-form');
-const taskList = document.querySelector('.collection');
+const taskList = document.querySelector('.collection-tasks');
+const completedList = document.querySelector('.collection-completed');
 const clearBtn = document.querySelector('.clear-tasks');
 const filter = document.querySelector('#filter');
 const taskInput = document.querySelector('#task');
@@ -13,6 +14,7 @@ function loadEventListeners() {
   form.addEventListener('submit', addTask);
   //Remove Task
   taskList.addEventListener('click', removeTask);
+  completedList.addEventListener('click', removeTask);
   //Clear All Tasks
   clearBtn.addEventListener('click', clearTasks);
   //DOM Content Loader 
@@ -21,6 +23,9 @@ function loadEventListeners() {
   filter.addEventListener('keyup', filterTasks);
   //Click favorite task
   taskList.addEventListener('click', favoriteTask);
+  //Click Complete/Incomplete task
+  taskList.addEventListener('click', completeTask);
+  completedList.addEventListener('click', completeTask);
 };
 
 //Add task
@@ -33,7 +38,8 @@ function addTask(e) {
     const storedTasks = storedTasksStr ? JSON.parse(storedTasksStr) : [];
     const task = {
       taskName: taskInput.value,
-      isFavorite: false
+      isFavorite: false,
+      isComplete: false
     };
     storedTasks.push(task);
     localStorage.setItem('tasks',JSON.stringify(storedTasks));
@@ -49,11 +55,14 @@ function addTask(e) {
 function loadAllTasks() {
   const storedTasksStr = localStorage.getItem('tasks');
   const storedTasks = storedTasksStr ? JSON.parse(storedTasksStr) : [];
+
   //Remove all li elements
   while(taskList.firstChild) {
     taskList.removeChild(taskList.firstChild);
   };
-
+  while(completedList.firstChild) {
+    completedList.removeChild(completedList.firstChild);
+  };
   //Create li elements
   storedTasks.forEach(function(task, index) {
     const li = document.createElement('li');
@@ -62,18 +71,31 @@ function loadAllTasks() {
     const deleteLink = document.createElement('a');
     deleteLink.className = 'delete-item secondary-content';
     deleteLink.innerHTML = '<i class=" fa fa-trash"></i>';
+    const checkLink = document.createElement('a');
+    checkLink.className = 'check-item secondary-content'
+    if (task.isComplete === false) {
+      checkLink.innerHTML = '<i class=" far fa-square"></i>';
+    } else {
+      checkLink.innerHTML = '<i class=" fas fa-check-square"></i>';
+      };
     const favoriteLink = document.createElement('a');
     favoriteLink.className = 'star-item secondary-content';
     if (task.isFavorite === false) {
       favoriteLink.innerHTML = '<i class="far fa-star"></i>';
     } else {
       favoriteLink.innerHTML = '<i class="fa fa-star"></i>';
-    };
-
+    }
     li.dataset.index = index;
     li.appendChild(deleteLink);
+    li.appendChild(checkLink);
     li.appendChild(favoriteLink);
-    taskList.appendChild(li);
+
+    if (task.isComplete) {
+      li.classList.add('completedTask');
+      completedList.appendChild(li);
+    } else {
+      taskList.appendChild(li);
+    }
   });
 };
 
@@ -129,11 +151,34 @@ function saveTasksToStorage(tasks) {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
+//Complete tasks
+function completeTask (e) {
+  if(!e.target.parentElement.classList.contains('check-item')) {
+    return;
+  }
+    // Get tasks
+    const tasks = getTasksFromStorage();
+    // Get clicked taks id
+    const taskIndex = e.target.parentElement.parentElement.dataset.index;
+    
+    // Update
+    const newTask = {...tasks[taskIndex], isComplete: !tasks[taskIndex].isComplete};
+    tasks.splice(taskIndex, 1, newTask);
+    
+    // Save to local storage
+    saveTasksToStorage(tasks);
+    // Load tasks
+    loadAllTasks();
+};
+
 //Clear all tasks
 function clearTasks() {
   while(taskList.firstChild) {
     taskList.removeChild(taskList.firstChild);
-  }
+  };
+  while(completedList.firstChild) {
+    completedList.removeChild(completedList.firstChild);
+  };
   //Clear local storage
   localStorage.removeItem('tasks');
 };
